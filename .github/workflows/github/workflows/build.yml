@@ -7,27 +7,29 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # تثبيت الإصدار المستقر لمنع أخطاء بيئة 24.04
+    runs-on: ubuntu-22.04
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # تحديث إجراء الجافا للإصدار v4 المستقر والدعم الكامل للـ Cache
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
+
+      # استخدام الأداة الرسمية لضبط الـ Gradle بأمان وتجنب مشاكل الـ Daemon
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Download Gradle Wrapper JAR
-        run: curl -L -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar
-
+      # البناء مع إضافة أمر تعطيل الـ Daemon لإجبارها على إظهار الخطأ الحقيقي إن وجد
       - name: Build Demo APK
-        run: ./gradlew :demos:main:assembleDebug --stacktrace
+        run: ./gradlew :demos:main:assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
