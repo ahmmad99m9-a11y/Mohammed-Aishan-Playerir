@@ -13,25 +13,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # تحديث إجراء الجافا للإصدار v4 المستقر والدعم الكامل للـ Cache
+      # 1. إعداد الجافا بالإصدار المدعوم والمستقر
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # استخدام الأداة الرسمية لضبط الـ Gradle بأمان وتجنب مشاكل الـ Daemon
+      # 2. إعداد أداة Gradle الرسمية لإدارة الكاش والذاكرة
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      # 3. إعطاء صلاحيات التشغيل لملف البناء الخاص بالمشروع
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # البناء مع إضافة أمر تعطيل الـ Daemon لإجبارها على إظهار الخطأ الحقيقي إن وجد
+      # 4. بناء التطبيق وإجبار النظام على طباعة تفاصيل الخطأ البرمجي بدقة
       - name: Build Demo APK
-        run: ./gradlew :demos:main:assembleDebug --no-daemon --stacktrace
+        run: ./gradlew :demos:main:assembleDebug --no-daemon --info --stacktrace
+        env:
+          GRADLE_OPTS: "-Xmx4g -Dorg.gradle.daemon=false"
 
+      # 5. رفع ملف الـ APK عند نجاح العملية
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Mohammed-Aishan-Player-APK
